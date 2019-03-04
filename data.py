@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
 import xml.dom.minidom as xmldom
+from scipy.io import loadmat
 from transform import *
 
 class Ldk_300W_Dataset(Dataset):
@@ -45,11 +46,35 @@ class Ldk_300W_Dataset(Dataset):
         if self.transform:
             sample = self.transform(sample)
         return sample
-    def show(self,idx):
-        record = self[idx]
-        plt.scatter(record['landmarks'][:,0], record['landmarks'][:,1], s=10, marker='.', c='r')
-        plt.imshow(record['image'])
 
+class Ldk_300W_LP_Dataset(Dataset):
+    def __init__(self, txtfile, root_dir, transform=None):
+        f = open(os.path.join(root_dir, txtfile))
+        content = f.read()
+        content = content.split("\n")[0:-1]
+        f.close()
+        self.records = []
+        for line in content:
+            record = line.split(",")
+            self.records.append(record)
+        self.root_dir = root_dir
+        self.transform = transform
+    def __len__(self):
+        return len(self.records)
+    def __getitem__(self, idx):
+        img_name = os.path.join(self.root_dir, self.records[idx][0])
+        image = io.imread(img_name)
+        h,w = image.shape[:2]
+        if len(image.shape) == 2:
+            image = image.reshape(h, w, 1)
+            image = np.concatenate((image, image, image), axis=2)
+        image = np.float32(image) / 256
+        m = loadmat(os.path.join(self.root_dir, self.records[idx][1]))
+        landmarks = m['pts_2d']
+        sample = {'image': image, 'landmarks': landmarks}
+        if self.transform:
+            sample = self.transform(sample)
+        return sample
 
 def show_landmarks_batch(sample_batched):
     """Show image with landmarks for a batch of samples."""
@@ -57,14 +82,13 @@ def show_landmarks_batch(sample_batched):
     batch_size = len(images_batch)
     im_size = images_batch.size(2)
 
-    grid = utils.make_grid(images_batch)
+    grid = utils.make_grid(images_batch,padding=0)
     plt.imshow(grid.numpy().transpose((1, 2, 0)))
 
     for i in range(batch_size):
-        plt.scatter(landmarks_batch[i, :, 0].numpy() + i * (im_size+2),
+        plt.scatter(landmarks_batch[i, :, 0].numpy() + i * (im_size),
                     landmarks_batch[i, :, 1].numpy(),
                     s=10, marker='.', c='r')
-
         plt.title('Batch from dataloader')
 
 
