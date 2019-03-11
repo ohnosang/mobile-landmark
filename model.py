@@ -24,7 +24,7 @@ class InvertedResidual(nn.Module):
         self.stride = stride
         assert stride in [1, 2]
 
-        hidden_dim = round(inp * expand_ratio)
+        hidden_dim = int(round(inp * expand_ratio))
         self.use_res_connect = self.stride == 1 and inp == oup
 
         if expand_ratio == 1:
@@ -63,52 +63,63 @@ class MobileNetV2(nn.Module):
     def __init__(self, n_class=136, input_size=64, width_mult=1.):
         super(MobileNetV2, self).__init__()
         block = InvertedResidual
-        input_channel = 32
-        last_channel = 1280
+        input_channel = 16
+        fc1_channel = 200
+        fc2_channel = 50
         interverted_residual_setting = [
             # t, c, n, s
-            [1, 16, 1, 1],
-            [6, 24, 2, 2],
-            [6, 32, 3, 2],
-            [6, 64, 4, 2],
-            [6, 96, 3, 1],
-            [6, 160, 3, 2],
-            [6, 320, 1, 1],
+            [6, 24, 1, 2],
+            [6, 24, 1, 1],
+            [6, 32, 1, 2],
+            [6, 32, 1, 1],
+            [6, 64, 1, 2],
+            [6, 64, 1, 1]
         ]
 
         # building first layer
         assert input_size % 32 == 0
         input_channel = int(input_channel * width_mult)
-        self.last_channel = int(last_channel * width_mult) if width_mult > 1.0 else last_channel
+        #self.last_channel = int(last_channel * width_mult) if width_mult > 1.0 else last_channel
         self.features = [conv_bn(3, input_channel, 2)]
         # building inverted residual blocks
         for t, c, n, s in interverted_residual_setting:
             output_channel = int(c * width_mult)
             for i in range(n):
                 if i == 0:
+                    print input_channel, output_channel, s, t
                     self.features.append(block(input_channel, output_channel, s, expand_ratio=t))
                 else:
                     self.features.append(block(input_channel, output_channel, 1, expand_ratio=t))
                 input_channel = output_channel
         # building last several layers
-        self.features.append(conv_1x1_bn(input_channel, self.last_channel))
+        #self.features.append(conv_1x1_bn(input_channel, self.last_channel))
         # make it nn.Sequential
         self.features = nn.Sequential(*self.features)
-
-        # building classifier
-        self.classifier = nn.Sequential(
+        
+        # building embedding
+        self.embedding = nn.Sequential(                                        
             nn.Dropout(0.2),
-            nn.Linear(self.last_channel, n_class),
+            nn.Linear(64 * 4 * 4  ,fc1_channel),
+            nn.Linear(fc1_channel, fc2_channel),
+            nn.Linear(fc2_channel, n_class)
         )
 
         self._initialize_weights()
-
+        
+    def num_flat_features(self, x):
+        size = x.size()[1:]  # all dimensions except the batch dimension
+        num_features = 1
+        for s in size:
+            num_features *= s
+        return num_features
+    
     def forward(self, x):
         x = self.features(x)
-        x = x.mean(3).mean(2)
-        x = self.classifier(x)
+        print x
+        x = x.view(-1, self.num_flat_features(x))
+        x = self.embedding(x)
         return x
-
+    
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

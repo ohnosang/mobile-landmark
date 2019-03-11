@@ -107,4 +107,11 @@ class ToTensor(object):
         image, landmarks = sample['image'], sample['landmarks']
         image = image.transpose((2, 0, 1))
         return {'image': torch.from_numpy(image), 'landmarks': torch.from_numpy(landmarks)}
-
+class Normalize(object):
+    def __call__(self,sample):
+        image, landmarks = sample['image'], sample['landmarks']
+        normalize = transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        image = normalize(image)
+        landmarks = landmarks / image.shape[1]
+        return {'image': image, 'landmarks':landmarks}
+        
