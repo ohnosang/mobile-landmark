@@ -78,7 +78,7 @@ class Flip(object):
         image = Image.fromarray(np.uint8(image * 256))
         image = image.transpose(Image.FLIP_LEFT_RIGHT)
         image = np.asarray(image)
-        image = np.float64(image)/256
+        image = np.float32(image)/256
         landmarks[:, 0] = w - landmarks[:, 0]
         return {'image' : image, 'landmarks': landmarks}
 
@@ -113,5 +113,7 @@ class Normalize(object):
         normalize = transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         image = normalize(image)
         landmarks = landmarks / image.shape[1]
+        image = image.float()
+        landmarks = landmarks.float()
         return {'image': image, 'landmarks':landmarks}
         
