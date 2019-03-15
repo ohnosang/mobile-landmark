@@ -14,6 +14,27 @@ import xml.dom.minidom as xmldom
 from scipy.io import loadmat
 from transform import *
 
+class Dataset_combined(Dataset):
+    def __init__(self, datasets):
+        self.datasets = datasets
+        self.lengthlist = []
+        l = 0
+        for dataset in self.datasets:
+            self.lengthlist.append(l)
+            l += len(dataset)
+    def __len__(self):
+        length = 0
+        for dataset in self.datasets:
+            length += len(dataset)
+        return length
+
+    def __getitem__(self, idx):
+        for i in range(len(self.datasets)):
+            if idx < self.lengthlist[i]:
+                return self.datasets[i - 1][idx - self.lengthlist[i - 1]]
+        last = len(self.datasets) - 1 
+        return self.datasets[last][idx - self.lengthlist[last]]
+                                                                          
 class Ldk_300W_Dataset(Dataset):
     def __init__(self, xmlfile, root_dir, transform=None):
         document = xmldom.parse(xmlfile)
