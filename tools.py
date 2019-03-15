@@ -61,9 +61,9 @@ def train(device, net, criterion, optimizer, trainset, testset, epoch, batch_siz
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-            if i_batch % 500 == 499:
-                print('epoch:'+ str(i) + ' iteration:' + str(i_batch) + ' loss:' + str(running_loss/500.0))
-                writer.add_scalar('Loss',running_loss/500.0,i_batch + i * dataset_length / batch_size)
+            if i_batch % 200 == 199:
+                print('epoch:'+ str(i) + ' iteration:' + str(i_batch) + ' loss:' + str(running_loss/200.0))
+                writer.add_scalar('Loss',running_loss/200.0,i_batch + i * dataset_length / batch_size)
                 running_loss = 0
         mean_error = test(net, testset, device, writer, i)
         if mean_error < min_error:
