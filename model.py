@@ -86,7 +86,6 @@ class MobileNetV2(nn.Module):
             output_channel = int(c * width_mult)
             for i in range(n):
                 if i == 0:
-                    print input_channel, output_channel, s, t
                     self.features.append(block(input_channel, output_channel, s, expand_ratio=t))
                 else:
                     self.features.append(block(input_channel, output_channel, 1, expand_ratio=t))

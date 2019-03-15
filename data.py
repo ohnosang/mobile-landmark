@@ -85,12 +85,12 @@ def show_landmarks_batch(sample_batched):
     grid = utils.make_grid(images_batch,padding=0)
     plt.figure()
     plt.imshow(grid.numpy().transpose((1, 2, 0)) * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406])
-
+    
     for i in range(batch_size):
         plt.scatter(landmarks_batch[i, :, 0].numpy() + i * (im_size),
                     landmarks_batch[i, :, 1].numpy(),
                     s=10, marker='.', c='r')
-        plt.title('Batch from dataloader')
-
+        plt.title('test dataset')
+    plt.show()
 
 

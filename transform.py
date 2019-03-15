@@ -48,7 +48,7 @@ class Rescale(object):
     def __call__(self, sample):
         image, landmarks = sample['image'], sample['landmarks']
         h, w = image.shape[:2]
-        image = transform.resize(image, (self.size[0], self.size[1]))
+        image = transform.resize(image, (self.size[0], self.size[1]), mode='constant')
         landmarks = landmarks * [self.size[0], self.size[1]] / [w, h]
         return {'image': image, 'landmarks':landmarks}
     

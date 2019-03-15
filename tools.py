@@ -37,7 +37,7 @@ def test(net, testset, device, writer, epoch):
                 mean_error += torch.sum((outputs - labels)**2)
                 if i_batch == 0:
                     outputs = (outputs.view(-1,68,2) * 64).cpu().detach()
-                    batch = {'image':sample_batched['image'], 'landmarks':outputs}
+                    batch = {'image':sample_batched['image'][0:8], 'landmarks':outputs[0:8]}
                     show_landmarks_batch(batch)
 
     mean_error = mean_error / len(testset)
@@ -63,7 +63,7 @@ def train(device, net, criterion, optimizer, trainset, testset, epoch, batch_siz
             running_loss += loss.item()
             if i_batch % 500 == 499:
                 print('epoch:'+ str(i) + ' iteration:' + str(i_batch) + ' loss:' + str(running_loss/500.0))
-                writer.add_scalar('Loss',running_loss/500.0,i_batch + i * dataset_length)
+                writer.add_scalar('Loss',running_loss/500.0,i_batch + i * dataset_length / batch_size)
                 running_loss = 0
         mean_error = test(net, testset, device, writer, i)
         if mean_error < min_error:
