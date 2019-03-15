@@ -83,6 +83,7 @@ def show_landmarks_batch(sample_batched):
     im_size = images_batch.size(2)
 
     grid = utils.make_grid(images_batch,padding=0)
+    plt.figure()
     plt.imshow(grid.numpy().transpose((1, 2, 0)) * [0.229, 0.224, 0.225] + [0.485, 0.456, 0.406])
 
     for i in range(batch_size):

@@ -86,7 +86,7 @@ class RandomCrop(object):
     def __call__(self, sample):
         image, landmarks = sample['image'], sample['landmarks']
         r = image.shape[0]
-        size = int(r * random.uniform(0.9, 1.0))
+        size = int(r * random.uniform(0.6, 1.0))
         init = r - size
         x0 = random.randint(0, init - 1)
         y0 = random.randint(0, init - 1)
