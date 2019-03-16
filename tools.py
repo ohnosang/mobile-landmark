@@ -31,12 +31,13 @@ def test(net, testset, device, writer, epoch):
     mean_error = 0
     with torch.no_grad():
            for i_batch, sample_batched in enumerate(testloader):
+                net.to(device)
                 inputs, labels = sample_batched['image'].to(device), sample_batched['landmarks'].to(device)
                 outputs = net(inputs)
                 labels = labels.view(-1, 136)
                 mean_error += torch.sum((outputs - labels)**2)
                 if i_batch == 0:
-                    outputs = (outputs.view(-1,68,2) * 64).cpu().detach()
+                    outputs = (outputs.view(-1,68,2)).cpu().detach()
                     batch = {'image':sample_batched['image'][0:8], 'landmarks':outputs[0:8]}
                     show_landmarks_batch(batch)
 
@@ -45,10 +46,10 @@ def test(net, testset, device, writer, epoch):
     return mean_error
 
 def train(device, net, criterion, optimizer, trainset, testset, epoch, batch_size, save_path, writer):
-    net.to(device)
     running_loss, min_error = 0.0, 10000
+    net.to(device)
+    net.train()
     trainloader = DataLoader(trainset, batch_size, shuffle=True, num_workers=4)
-    
     dataset_length = len(trainset)
     for i in range(epoch):
         running_loss = 0.0

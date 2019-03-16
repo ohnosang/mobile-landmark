@@ -57,12 +57,13 @@ class Rotate(object):
         self.angle = angle
     def __call__(self, sample):
         image, landmarks = sample['image'], sample['landmarks']
-        image = transform.rotate(image, self.angle)
+        angle1 = random.randint(-self.angle, self.angle)
+        image = transform.rotate(image, angle1)
         left, right = min(landmarks[:,0]), max(landmarks[:,0])
         top, bottom = min(landmarks[:,1]), max(landmarks[:,1])
-        angle = math.radians(-self.angle)
-        rotate_matrix = [[math.cos(angle), -math.sin(angle)]
-                          ,[math.sin(angle), math.cos(angle)]]
+        angle2 = math.radians(-angle1)
+        rotate_matrix = [[math.cos(angle2), -math.sin(angle2)]
+                          ,[math.sin(angle2), math.cos(angle2)]]
         middle = [left/2 + right/2, top/2 + bottom/2]
         landmarks_r = (landmarks - middle).transpose((1,0))
         landmarks_r = np.matmul(rotate_matrix, landmarks_r)
@@ -75,11 +76,14 @@ class Flip(object):
     def __call__(self, sample):
         image, landmarks = sample['image'], sample['landmarks']
         h, w = image.shape[:2]
-        image = Image.fromarray(np.uint8(image * 256))
-        image = image.transpose(Image.FLIP_LEFT_RIGHT)
-        image = np.asarray(image)
-        image = np.float32(image)/256
-        landmarks[:, 0] = w - landmarks[:, 0]
+        value = random.uniform(0,1)
+        if value > 0.5:
+            image = Image.fromarray(np.uint8(image * 256))
+            image = image.transpose(Image.FLIP_LEFT_RIGHT)
+            image = np.asarray(image)
+            image = np.float32(image)/256
+            landmarks[:, 0] = w - landmarks[:, 0]
+            
         return {'image' : image, 'landmarks': landmarks}
 
 class RandomCrop(object):
@@ -101,7 +105,9 @@ class RandomCrop(object):
 class Gnoise(object):
     def __call__(self, sample):
         image, landmarks = sample['image'], sample['landmarks']
-        image = skimage.util.random_noise(image,mode='gaussian',seed=None,clip=True)
+        value = random.uniform(0,1)
+        if value > 0.5:
+            image = skimage.util.random_noise(image,mode='gaussian',seed=None,clip=True)
         return {'image': image, 'landmarks': landmarks}
     
 class ToTensor(object):
